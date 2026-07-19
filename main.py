@@ -35,19 +35,19 @@ results = analyzer.analyze(
 
 scorer = SymmetryScore()
 
-overall_score = scorer.calculate(
-    results["regions"]
+overall, report = scorer.calculate(
+    results
 )
 
 
-print("Region Errors")
+print()
 
-for name, value in results["regions"].items():
+print("Region Scores")
 
-    print(f"{name:<12}: {value:.5f}")
+for region,score in report.items():
+
+    print(f"{region:<12}: {score}")
 
 print()
 
-print("Overall Error :", results["overall_error"])
-
-print("Score :", overall_score)
+print("Overall :",overall)

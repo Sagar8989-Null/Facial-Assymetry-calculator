@@ -5,24 +5,40 @@ from constants import REGION_WEIGHTS
 
 class SymmetryScore:
 
-    def error_to_score(self, error):
+    def error_to_score(self,error):
 
-        score = 100 * np.exp(-6 * error)
+        return 100*np.exp(-6*error)
 
-        return np.clip(score,0,100)
+    def calculate(self,results):
 
-    def calculate(self, regions):
+        total=0
 
-        weighted = 0
+        weight_sum=0
 
-        total_weight = 0
+        report={}
 
-        for region, error in regions.items():
+        for region,weight in REGION_WEIGHTS.items():
 
-            weight = REGION_WEIGHTS[region]
+            d=results["distance_errors"][region]
 
-            weighted += self.error_to_score(error) * weight
+            if region in results["shape_errors"]:
 
-            total_weight += weight
+                s=results["shape_errors"][region]
 
-        return round(weighted / total_weight,2)
+                error=0.7*d+0.3*s
+
+            else:
+
+                error=d
+
+            score=self.error_to_score(error)
+
+            report[region]=round(score,2)
+
+            total+=score*weight
+
+            weight_sum+=weight
+
+        overall=round(total/weight_sum,2)
+
+        return overall,report

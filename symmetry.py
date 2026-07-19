@@ -5,6 +5,10 @@ from constants import (
     CENTER_POINTS
 )
 
+from scipy.spatial import procrustes
+
+from constants import SHAPE_REGIONS
+
 from utils import mirror
 
 
@@ -121,28 +125,77 @@ class SymmetryAnalyzer:
 
         region_errors = {}
 
-        for region, pairs in self.regions.items():
+        for region,pairs in self.regions.items():
 
-            region_errors[region] = self.region_error(
+            region_errors[region]=self.region_error(
 
                 landmarks,
+
                 pairs,
+
                 mid_x
 
             )
 
-        total = self.overall_error(
+        shape_errors=self.shape_errors(
 
-            region_errors
+            landmarks,
+
+            mid_x
 
         )
 
-        return {
+        return{
 
-            "midline": mid_x,
+            "midline":mid_x,
 
-            "regions": region_errors,
+            "distance_errors":region_errors,
 
-            "overall_error": total
+            "shape_errors":shape_errors
 
         }
+    
+    def procrustes_error(
+        self,
+        landmarks,
+        left_indices,
+        right_indices,
+        mid_x
+        ):
+
+        left = landmarks[left_indices].copy()
+
+        right = landmarks[right_indices].copy()
+
+        left[:,0] = 2*mid_x-left[:,0]
+
+        _,_,error = procrustes(
+            left,
+            right
+        )
+
+        return error
+    
+    def shape_errors(
+        self,
+        landmarks,
+        mid_x
+    ):
+
+        results={}
+
+        for region,data in SHAPE_REGIONS.items():
+
+            results[region]=self.procrustes_error(
+
+                landmarks,
+
+                data["left"],
+
+                data["right"],
+
+                mid_x
+
+            )
+
+        return results
