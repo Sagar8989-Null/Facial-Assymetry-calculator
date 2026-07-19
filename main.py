@@ -5,6 +5,9 @@ from align import FaceAligner
 from normalize import LandmarkNormalizer
 from symmetry import SymmetryAnalyzer
 from score import SymmetryScore
+from heatmap import FacialHeatmap
+from visualize import HeatmapVisualizer
+from constants import HEATMAP_REGIONS
 
 # image = cv2.imread("images/test.jpg")
 image = cv2.imread("images/test0.png")
@@ -39,6 +42,25 @@ overall, report = scorer.calculate(
     results
 )
 
+# ---------------------------------------
+# Heatmap
+# ---------------------------------------
+
+heatmap_generator = FacialHeatmap()
+
+heatmap = heatmap_generator.generate(
+    aligned_image,
+    aligned_landmarks,
+    results["distance_errors"],
+    HEATMAP_REGIONS
+)
+
+visualizer = HeatmapVisualizer()
+
+overlay = visualizer.save(
+    aligned_image,
+    heatmap
+)
 
 print()
 
@@ -51,3 +73,11 @@ for region,score in report.items():
 print()
 
 print("Overall :",overall)
+
+cv2.imshow("Heatmap", heatmap)
+
+cv2.imshow("Overlay", overlay)
+
+cv2.waitKey(0)
+
+cv2.destroyAllWindows()
