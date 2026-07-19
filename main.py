@@ -3,8 +3,7 @@ import cv2
 from detector import FaceDetector
 from align import FaceAligner
 from normalize import LandmarkNormalizer
-from midline import MidlineEstimator
-from symmetry import SymmetryCalculator
+from symmetry import SymmetryAnalyzer
 from score import SymmetryScore
 
 # image = cv2.imread("images/test.jpg")
@@ -22,51 +21,33 @@ aligned_image, aligned_landmarks, angle = aligner.align(
 
 normalizer = LandmarkNormalizer()
 
-normalized_landmarks, eye_distance = normalizer.normalize(
+normalized_landmarks = normalizer.normalize(
     aligned_landmarks
 )
 
-midline = MidlineEstimator()
 
-mid_x = midline.estimate(normalized_landmarks)
+analyzer = SymmetryAnalyzer()
 
-calculator = SymmetryCalculator()
-
-results = calculator.calculate(
-    normalized_landmarks,
-    mid_x
+results = analyzer.analyze(
+    normalized_landmarks
 )
 
-# mean_error, distances = calculator.calculate(
-#     normalized_landmarks,
-#     mid_x
-# )
 
 scorer = SymmetryScore()
 
-overall = scorer.calculate(results)
+overall_score = scorer.calculate(
+    results["regions"]
+)
 
 
-# score = scorer.calculate(mean_error)
+print("Region Errors")
 
-print(f"Eye Distance : {eye_distance:.2f}")
+for name, value in results["regions"].items():
 
-print(normalized_landmarks[:5])
-
-print("Facial Midline:", mid_x)
-
-# print(distances)
-# 
-# print(mean_error)
-# 
-# print(score)
-
+    print(f"{name:<12}: {value:.5f}")
 
 print()
 
-for region,error in results.items():
-    print(region,error)
+print("Overall Error :", results["overall_error"])
 
-print()
-
-print("Overall :",overall)
+print("Score :", overall_score)

@@ -1,34 +1,28 @@
 import numpy as np
 
-
-WEIGHTS = {
-
-    "eyes":0.30,
-
-    "eyebrows":0.10,
-
-    "nose":0.20,
-
-    "mouth":0.25,
-
-    "jaw":0.15
-}
+from constants import REGION_WEIGHTS
 
 
 class SymmetryScore:
 
-    def region_score(self,error):
+    def error_to_score(self, error):
 
-        score = 100 - error*600
+        score = 100 * np.exp(-6 * error)
 
         return np.clip(score,0,100)
 
-    def calculate(self,results):
+    def calculate(self, regions):
 
-        total = 0
+        weighted = 0
 
-        for region,error in results.items():
+        total_weight = 0
 
-            total += self.region_score(error) * WEIGHTS[region]
+        for region, error in regions.items():
 
-        return round(total,2)
+            weight = REGION_WEIGHTS[region]
+
+            weighted += self.error_to_score(error) * weight
+
+            total_weight += weight
+
+        return round(weighted / total_weight,2)
