@@ -99,3 +99,36 @@ SHAPE_REGIONS = {
     }
 
 }
+
+# ---------------------------------------
+# Score Fusion Weights
+# ---------------------------------------
+
+FEATURE_WEIGHTS = {
+
+    "eyes": {
+        "distance": 0.45,
+        "shape": 0.55
+    },
+
+    "eyebrows": {
+        "distance": 0.40,
+        "shape": 0.60
+    },
+
+    "nose": {
+        "distance": 1.00,
+        "shape": 0.00
+    },
+
+    "mouth": {
+        "distance": 0.55,
+        "shape": 0.45
+    },
+
+    "jaw": {
+        "distance": 0.35,
+        "shape": 0.65
+    }
+
+}

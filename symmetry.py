@@ -2,7 +2,8 @@ import numpy as np
 
 from constants import (
     LANDMARK_PAIRS,
-    CENTER_POINTS
+    CENTER_POINTS,
+    SHAPE_REGIONS
 )
 
 from scipy.spatial import procrustes
@@ -10,61 +11,14 @@ from scipy.spatial import procrustes
 from constants import SHAPE_REGIONS
 
 from utils import mirror
-
+from kabsch import KabschAligner
+from landmark_pairs import REGIONS
 
 class SymmetryAnalyzer:
 
     def __init__(self):
-
-        self.regions = {
-
-            "eyes":[
-                (33,263),
-                (133,362),
-                (160,387),
-                (159,386),
-                (158,385),
-                (157,384),
-                (173,398)
-            ],
-
-            "eyebrows":[
-                (70,300),
-                (63,293),
-                (105,334),
-                (66,296),
-                (107,336)
-            ],
-
-            "nose":[
-                (129,358),
-                (98,327),
-                (97,326)
-            ],
-
-            "mouth":[
-                (61,291),
-                (40,270),
-                (39,269),
-                (37,267),
-                (84,314),
-                (181,405),
-                (91,321),
-                (146,375)
-            ],
-
-            "jaw":[
-                (234,454),
-                (93,323),
-                (132,361),
-                (58,288),
-                (172,397),
-                (136,365),
-                (150,379),
-                (149,378)
-            ]
-
-        }
+        self.kabsch = KabschAligner()
+        self.regions = REGIONS
 
     # ------------------------------
 
@@ -123,27 +77,52 @@ class SymmetryAnalyzer:
 
         mid_x = self.midline(landmarks)
 
-        region_errors = {}
+        distance_errors = {}
 
-        for region,pairs in self.regions.items():
+        for region, pairs in self.regions.items():
 
-            region_errors[region]=self.region_error(
-
+            distance_errors[region] = self.region_error(
                 landmarks,
-
                 pairs,
-
                 mid_x
-
             )
 
-        shape_errors=self.shape_errors(
-
+        shape_errors = self.shape_errors(
             landmarks,
-
             mid_x
-
         )
+
+        # normalize by interpupillary distance
+
+        left_eye = np.mean(
+            landmarks[[33,133]],
+            axis=0
+        )
+
+        right_eye = np.mean(
+            landmarks[[263,362]],
+            axis=0
+        )
+
+        ipd = np.linalg.norm(
+            right_eye-left_eye
+        )
+
+        for region in distance_errors:
+            distance_errors[region] /= ipd
+
+        for region in shape_errors:
+            shape_errors[region] /= ipd
+
+        return {
+
+            "midline": mid_x,
+
+            "distance_errors": distance_errors,
+
+            "shape_errors": shape_errors
+
+        }
 
         return{
 
@@ -155,47 +134,20 @@ class SymmetryAnalyzer:
 
         }
     
-    def procrustes_error(
-        self,
-        landmarks,
-        left_indices,
-        right_indices,
-        mid_x
-        ):
+    def shape_errors(self, landmarks, mid_x):
 
-        left = landmarks[left_indices].copy()
+        results = {}
 
-        right = landmarks[right_indices].copy()
+        for region, data in SHAPE_REGIONS.items():
 
-        left[:,0] = 2*mid_x-left[:,0]
+            left = landmarks[data["left"]]
 
-        _,_,error = procrustes(
-            left,
-            right
-        )
+            right = landmarks[data["right"]]
 
-        return error
-    
-    def shape_errors(
-        self,
-        landmarks,
-        mid_x
-    ):
-
-        results={}
-
-        for region,data in SHAPE_REGIONS.items():
-
-            results[region]=self.procrustes_error(
-
-                landmarks,
-
-                data["left"],
-
-                data["right"],
-
+            results[region] = self.kabsch.compare(
+                left,
+                right,
                 mid_x
-
             )
 
         return results

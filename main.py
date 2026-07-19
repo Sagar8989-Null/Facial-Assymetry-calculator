@@ -2,12 +2,11 @@ import cv2
 
 from detector import FaceDetector
 from align import FaceAligner
-from normalize import LandmarkNormalizer
 from symmetry import SymmetryAnalyzer
 from score import SymmetryScore
 
-# image = cv2.imread("images/test.jpg")
-image = cv2.imread("images/test0.png")
+image = cv2.imread("images/test4.jpeg")
+# image = cv2.imread("images/test0.png")
 
 detector = FaceDetector()
 landmarks = detector.detect(image)
@@ -19,19 +18,12 @@ aligned_image, aligned_landmarks, angle = aligner.align(
     landmarks
 )
 
-normalizer = LandmarkNormalizer()
-
-normalized_landmarks = normalizer.normalize(
-    aligned_landmarks
-)
-
 
 analyzer = SymmetryAnalyzer()
 
 results = analyzer.analyze(
-    normalized_landmarks
+    aligned_landmarks
 )
-
 
 scorer = SymmetryScore()
 
