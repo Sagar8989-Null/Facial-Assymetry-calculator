@@ -145,13 +145,20 @@ class SymmetryAnalyzer:
 
         )
 
+        landmark_errors = self.landmark_errors(
+            landmarks,
+            mid_x
+        )
+
         return{
 
             "midline":mid_x,
 
             "distance_errors":region_errors,
 
-            "shape_errors":shape_errors
+            "shape_errors":shape_errors,
+
+            "landmark_errors": landmark_errors
 
         }
     
@@ -199,3 +206,27 @@ class SymmetryAnalyzer:
             )
 
         return results
+    
+    def landmark_errors(self, landmarks, mid_x):
+
+        errors = {}
+
+        for left, right in LANDMARK_PAIRS.items():
+
+            left_point = landmarks[left]
+
+            right_point = landmarks[right]
+
+            mirrored = mirror(
+                left_point,
+                mid_x
+            )
+
+            error = np.linalg.norm(
+                mirrored - right_point
+            )
+
+            errors[left] = error
+            errors[right] = error
+
+        return errors

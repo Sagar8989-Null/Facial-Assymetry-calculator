@@ -5,12 +5,12 @@ from align import FaceAligner
 from normalize import LandmarkNormalizer
 from symmetry import SymmetryAnalyzer
 from score import SymmetryScore
-from heatmap import FacialHeatmap
+from landmark_heatmap import LandmarkHeatmap
 from visualize import HeatmapVisualizer
 from constants import HEATMAP_REGIONS
 
-# image = cv2.imread("images/test.jpg")
-image = cv2.imread("images/test0.png")
+image = cv2.imread("images/test1.jpeg")
+# image = cv2.imread("images/test0.png")
 
 detector = FaceDetector()
 landmarks = detector.detect(image)
@@ -46,13 +46,12 @@ overall, report = scorer.calculate(
 # Heatmap
 # ---------------------------------------
 
-heatmap_generator = FacialHeatmap()
+heatmap_generator = LandmarkHeatmap()
 
 heatmap = heatmap_generator.generate(
     aligned_image,
     aligned_landmarks,
-    results["distance_errors"],
-    HEATMAP_REGIONS
+    results["landmark_errors"]
 )
 
 visualizer = HeatmapVisualizer()
@@ -78,6 +77,11 @@ cv2.imshow("Heatmap", heatmap)
 
 cv2.imshow("Overlay", overlay)
 
-cv2.waitKey(0)
+while True:
+    key = cv2.waitKey(20) & 0xFF
+    if key == 27:  # ESC key
+        break
+    if cv2.getWindowProperty("Heatmap", cv2.WND_PROP_VISIBLE) < 1:
+        break
 
 cv2.destroyAllWindows()
